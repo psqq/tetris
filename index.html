@@ -13,13 +13,14 @@ body {
 	grid-template-rows: 100px 300px 100px;
 }
 .buttons {
-	display: flex;
-	justify-content: space-around;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
 }
 .buttons div {
 	display: grid;
 	justify-items: center;
 	align-items: center;
+	user-select: none;
 }
 .center {
 	display: grid;
