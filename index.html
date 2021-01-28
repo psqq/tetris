@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Tetris</title>
-
+<meta name="viewport" content="width=device-width, user-scalable=no">
 <style>
 body {
 	margin: 0;
@@ -93,7 +93,7 @@ function rotate_figure() {
 }
 
 function generate_figure() {
-	var x = Math.floor(Math.random() * board_size_in_cells.x);
+	var x = Math.floor(Math.random() * (board_size_in_cells.x - 1));
 	var speed = 250;
 	figure  = {
 		pos: { x, y: 0 },
@@ -102,6 +102,7 @@ function generate_figure() {
 			{ dx: 0, dy: 0 },
 			{ dx: 0, dy: 1 },
 			{ dx: 0, dy: 2 },
+			{ dx: 1, dy: 1 },
 		],
 	};
 }
