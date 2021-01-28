@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tetris</title>
+
+<style>
+body {
+	margin: 0;
+}
+.root {
+	display: grid;
+	grid-template-columns: 300px;
+	grid-template-rows: 100px 300px 100px;
+}
+.buttons {
+	display: flex;
+	justify-content: space-around;
+}
+.buttons div {
+	display: grid;
+	justify-items: center;
+	align-items: center;
+}
+.center {
+	display: grid;
+	justify-items: center;
+	align-items: center;
+}
+canvas {
+	border-bottom: 3px solid black;
+}
+</style>
+
+</head>
+<body>
+
+<div class="center">
+<div class="root">
+	<div class="center">Score: 0</div>
+	<canvas width="300" height="300"></canvas>
+	<div class="buttons">
+		<div onclick="left()">L</div>
+		<div onclick="rotate()">0</div>
+		<div onclick="right()">R</div>
+	</div>
+</div>
+</div>
+
+<script>
+var can = document.querySelector('canvas');
+var ctx = can.getContext('2d');
+var cell_size_px = 15;
+var board_size_px = { x: 300, y: 300 };
+var board_size_in_cells = {
+	x: board_size_px.x / cell_size_px,
+	y: board_size_px.y / cell_size_px,
+};
+
+function clear() {
+	ctx.clearRect(0, 0, board_size_px.x, board_size_px.y);
+}
+
+function fill_cell(x, y, clr = 'black') {
+	ctx.fillRect(x * cell_size_px, y * cell_size_px, cell_size_px, cell_size_px);
+}
+
+function left() {
+	var bounds = get_figure_bounds();
+	if (bounds.left <= 0) return;
+	figure.pos.x -= 1;
+}
+
+function right() {
+	var bounds = get_figure_bounds();
+	if (bounds.right >= board_size_in_cells.x - 1) return;
+	figure.pos.x += 1;
+}
+
+function rotate() {
+	rotate_figure();
+}
+
+var figure = null;
+var board = [];
+
+function rotate_figure() {
+	for(let p of figure.picture) {
+		var dx = p.dx, dy = p.dy;
+		p.dx = -dy;
+		p.dy = dx;
+	}
+}
+
+function generate_figure() {
+	var x = Math.floor(Math.random() * board_size_in_cells.x);
+	var speed = 250;
+	figure  = {
+		pos: { x, y: 0 },
+		speed, speed_interval: speed,
+		picture: [
+			{ dx: 0, dy: 0 },
+			{ dx: 0, dy: 1 },
+			{ dx: 0, dy: 2 },
+		],
+	};
+}
+
+function get_figure_bounds() {
+	var bounds = { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity };
+	for(let p of figure.picture) {
+		var x = figure.pos.x + p.dx, y = figure.pos.y + p.dy;
+		bounds.left = Math.min(bounds.left, x);
+		bounds.right = Math.max(bounds.right, x);
+		bounds.top = Math.min(bounds.top, y);
+		bounds.bottom = Math.max(bounds.bottom, y);
+	}
+	return bounds;
+}
+
+function board_is_filled(x, y) {
+	if (x < 0 || y < 0) return true;
+	if (x >= board_size_in_cells.x || y >= board_size_in_cells.y) {
+		return true;
+	}
+	for(let p of board ) {
+		if (p.x === x && p.y === y) return true;
+	}
+	return false;
+}
+
+function board_fill(x, y) {
+	board.push({x, y});
+}
+
+function figure_has_connection_with_floor() {
+	for(let p of figure.picture) {
+		var x = figure.pos.x + p.dx, y = figure.pos.y + p.dy + 1;
+		if (board_is_filled(x, y)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function update(dt) {
+	if (figure_has_connection_with_floor()) {
+		for(let p of figure.picture) {
+			board_fill(figure.pos.x + p.dx, figure.pos.y + p.dy);
+		}
+		generate_figure();
+	}
+	figure.speed_interval -= dt;
+	if (figure.speed_interval <= 0) {
+		figure.speed_interval = figure.speed;
+		figure.pos.y += 1;
+	}
+}
+
+function draw() {
+	for(let p of figure.picture) {
+		fill_cell(figure.pos.x + p.dx, figure.pos.y + p.dy);
+	}
+	for(let p of board) {
+		fill_cell(p.x, p.y);
+	}
+}
+
+var t, pt, dt;
+
+function run_mainloop() {
+	t = performance.now(), pt = performance.now(), dt = 0;
+	requestAnimationFrame(function go() {
+		t = performance.now();
+		dt = t - pt;
+		update(dt);
+		clear();
+		draw();
+		pt = t;
+		requestAnimationFrame(go);
+	});
+}
+
+generate_figure();
+run_mainloop();
+
+</script>
+
+</body>
+</html>
